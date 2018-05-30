@@ -1,8 +1,11 @@
 package com.template;
 
 import net.corda.core.contracts.CommandData;
+import net.corda.core.contracts.CommandWithParties;
 import net.corda.core.contracts.Contract;
 import net.corda.core.transactions.LedgerTransaction;
+
+import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
 
 /**
  * Define your contract here.
@@ -16,7 +19,17 @@ public class TemplateContract implements Contract {
      * and output states does not throw an exception.
      */
     @Override
-    public void verify(LedgerTransaction tx) {}
+    public void verify(LedgerTransaction tx) {
+        CommandWithParties<Commands> command = requireSingleCommand(tx.getCommands(), Commands.class);
+
+        if (command.getValue() instanceof Commands.Action) {
+            /*
+             Contract verification rules will go here
+             */
+        } else {
+            throw new IllegalArgumentException("Unrecognized command.");
+        }
+    }
 
     public interface Commands extends CommandData {
         class Action implements Commands {}
