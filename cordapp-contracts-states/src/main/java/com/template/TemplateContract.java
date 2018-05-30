@@ -6,6 +6,7 @@ import net.corda.core.contracts.Contract;
 import net.corda.core.transactions.LedgerTransaction;
 
 import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
+import static net.corda.core.contracts.ContractsDSL.requireThat;
 
 /**
  * Define your contract here.
@@ -24,8 +25,18 @@ public class TemplateContract implements Contract {
 
         if (command.getValue() instanceof Commands.Action) {
             /*
-             Contract verification rules will go here
+             Contract verification rules
              */
+            requireThat(require -> {
+                require.using("There should be no input states", tx.getInputs().isEmpty());
+                require.using("There should be exactly 1 output state.", tx.getOutputs().size() == 1);
+                require.using("There should be exactly 1 required signers.", command.getSigners().size() == 1);
+                TemplateState output = (TemplateState) tx.getOutputStates().get(0);
+                require.using("Must be signed by party referenced in output state.", command.getSigners().contains(output.getMe().getOwningKey()));
+                require.using("Account Balance must be greater than zero.", output.getBankAccountBalance() > 0);
+                return null;
+            });
+
         } else {
             throw new IllegalArgumentException("Unrecognized command.");
         }
